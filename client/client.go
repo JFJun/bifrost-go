@@ -11,7 +11,6 @@ import (
 	"github.com/JFJun/bifrost-go/utils"
 	"github.com/JFJun/go-substrate-crypto/ss58"
 
-	"github.com/shopspring/decimal"
 	gsrc "github.com/stafiprotocol/go-substrate-rpc-client"
 	gsClient "github.com/stafiprotocol/go-substrate-rpc-client/client"
 	"github.com/stafiprotocol/go-substrate-rpc-client/rpc"
@@ -98,6 +97,7 @@ func (c *Client) checkRuntimeVersion() error {
 	}
 	return nil
 }
+
 /*
 获取创世区块hash
 */
@@ -132,6 +132,7 @@ func (c *Client) GetBlockByNumber(height int64) (*models.BlockResponse, error) {
 
 	return c.GetBlockByHash(blockHash)
 }
+
 /*
 根据blockHash解析block，返回block是否包含交易
 */
@@ -315,6 +316,7 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 	//utils.CheckStructData(blockResp)
 	return nil
 }
+
 /*
 解析当前区块的System.event
 */
@@ -351,7 +353,8 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 	if err != nil {
 		return fmt.Errorf("decode event data error: %v", err)
 	}
-
+	//d,_:=json.Marshal(ier)
+	//fmt.Println(string(d))
 	var res []models.EventResult
 	failedMap := make(map[int]bool)
 	if len(ier.GetBalancesTransfer()) > 0 {
@@ -363,7 +366,9 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 				failedMap[int(extrinsicIdx)] = true
 			}
 		}
+
 		for _, ebt := range ier.GetBalancesTransfer() {
+
 			if !ebt.Phase.IsApplyExtrinsic {
 				continue
 			}
@@ -377,12 +382,13 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 				continue
 			}
 			toHex := hex.EncodeToString(ebt.To[:])
+
 			r.To, err = ss58.EncodeByPubHex(toHex, c.prefix)
 			if err != nil {
 				r.To = ""
 				continue
 			}
-			r.Amount = decimal.NewFromInt(ebt.Value.Int64()).String()
+			r.Amount = ebt.Value.String()
 			//r.Weight = c.getWeight(&events, r.ExtrinsicIdx)
 			res = append(res, r)
 		}
@@ -404,8 +410,6 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 						e.ToAddress = r.To
 						//计算手续费
 						//e.Fee = c.calcFee(&events, e.ExtrinsicIndex)
-					} else {
-						e.Status = fmt.Sprintf("to address is not equal,a1=[%s],a2=[%s]", e.ToAddress, r.To)
 					}
 				}
 			}
@@ -415,24 +419,6 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 	return nil
 }
 
-//func (c *Client) calcFee(events *types.EventRecords, extrinsicIdx int) string {
-//	var (
-//		fee = decimal.Zero
-//	)
-//
-//	for _, bd := range events.Balances_Deposit {
-//		if bd.Phase.IsApplyExtrinsic && int(bd.Phase.AsApplyExtrinsic) == extrinsicIdx {
-//			fee = fee.Add(decimal.NewFromInt(bd.Balance.Int64()))
-//		}
-//	}
-//	for _, td := range events.Treasury_Deposit {
-//		if td.Phase.IsApplyExtrinsic && int(td.Phase.AsApplyExtrinsic) == extrinsicIdx {
-//			fee = fee.Add(decimal.NewFromInt(td.Deposited.Int64()))
-//		}
-//	}
-//	return fee.String()
-//}
-
 /*
 根据外部交易extrinsic创建txid
 */
@@ -441,6 +427,7 @@ func (c *Client) createTxHash(extrinsic string) string {
 	d := blake2b.Sum256(data)
 	return "0x" + hex.EncodeToString(d[:])
 }
+
 /*
 根据地址获取地址的账户信息，包括nonce以及余额等
 */
@@ -475,6 +462,7 @@ func (c *Client) GetAccountInfo(address string) (*types.AccountInfo, error) {
 	}
 	return &accountInfo, nil
 }
+
 /*
 获取外部交易extrinsic的手续费
 */

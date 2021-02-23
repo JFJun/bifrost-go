@@ -16,22 +16,21 @@ import (
 由于许多的链的交易格式稍有不同，所以决定交易结构进行更细 的拆分
 */
 
-
 type SubstrateTransaction struct {
-	SenderPubkey       string            `json:"sender_pubkey"`    // from address public key ,0x开头
-	Nonce              uint64            `json:"nonce"`            //nonce值
-	BlockHash          string            `json:"block_hash"`       //最新区块hash
-	GenesisHash        string            `json:"genesis_hash"`     //
-	SpecVersion        uint32            `json:"spec_version"`
-	TransactionVersion uint32            `json:"transaction_version"`
-	Tip                uint64            `json:"tip"`              //小费
-	BlockNumber        uint64            `json:"block_Number"`     //最新区块高度
-	EraPeriod          uint64            `json:"era_period"`       // 存活最大区块
-	call  				types.Call
-
+	SenderPubkey       string `json:"sender_pubkey"` // from address public key ,0x开头
+	Nonce              uint64 `json:"nonce"`         //nonce值
+	BlockHash          string `json:"block_hash"`    //最新区块hash
+	GenesisHash        string `json:"genesis_hash"`  //
+	SpecVersion        uint32 `json:"spec_version"`
+	TransactionVersion uint32 `json:"transaction_version"`
+	Tip                uint64 `json:"tip"`          //小费
+	BlockNumber        uint64 `json:"block_Number"` //最新区块高度
+	EraPeriod          uint64 `json:"era_period"`   // 存活最大区块
+	call               types.Call
 }
-func NewSubstrateTransaction(from string,nonce uint64)*SubstrateTransaction{
-	st :=new(SubstrateTransaction)
+
+func NewSubstrateTransaction(from string, nonce uint64) *SubstrateTransaction {
+	st := new(SubstrateTransaction)
 	st.SenderPubkey = utils.AddressToPublicKey(from)
 	st.Nonce = nonce
 	return st
@@ -49,11 +48,21 @@ func (tx *SubstrateTransaction) SetGenesisHashAndBlockHash(genesisHash, blockHas
 /*
 设置链的版本以及交易版本
 */
+func (tx *SubstrateTransaction) SetSpecAndTxVersion(specVersion, transactionVersion uint32) *SubstrateTransaction {
+	tx.SpecVersion = specVersion
+	tx.TransactionVersion = transactionVersion
+	return tx
+}
+
+/*
+设置链的版本以及交易版本
+*/
 func (tx *SubstrateTransaction) SetSpecVersionAndCallId(specVersion, transactionVersion uint32) *SubstrateTransaction {
 	tx.SpecVersion = specVersion
 	tx.TransactionVersion = transactionVersion
 	return tx
 }
+
 /*
 给矿工增加手续费，可以加快打包速度
 */
@@ -70,12 +79,12 @@ func (tx *SubstrateTransaction) SetEra(blockNumber, eraPeriod uint64) *Substrate
 	tx.EraPeriod = eraPeriod
 	return tx
 }
-func (tx *SubstrateTransaction)SetCall(call types.Call)*SubstrateTransaction{
+func (tx *SubstrateTransaction) SetCall(call types.Call) *SubstrateTransaction {
 	tx.call = call
 	return tx
 }
 
-func (tx *SubstrateTransaction)SignTranaction(privateKey string, signType int) (string, error){
+func (tx *SubstrateTransaction) SignTransaction(privateKey string, signType int) (string, error) {
 
 	ext := expand.NewExtrinsic(tx.call)
 	o := types.SignatureOptions{
@@ -155,8 +164,8 @@ func (tx *SubstrateTransaction) signTx(e *expand.Extrinsic, o types.SignatureOpt
 		ss = types.MultiSignature{IsEd25519: true, AsEd25519: types.NewSignature(sig)}
 	} else if signType == crypto.Sr25519Type {
 		ss = types.MultiSignature{IsSr25519: true, AsSr25519: types.NewSignature(sig)}
-	}else if signType==crypto.EcdsaType {
-		ss = types.MultiSignature{IsEcdsa: true,AsEcdsa: types.NewBytes(sig)}
+	} else if signType == crypto.EcdsaType {
+		ss = types.MultiSignature{IsEcdsa: true, AsEcdsa: types.NewBytes(sig)}
 	} else {
 		return fmt.Errorf("unsupport sign type : %d", signType)
 	}
