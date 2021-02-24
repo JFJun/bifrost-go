@@ -456,10 +456,27 @@ func (c *Client) GetAccountInfo(address string) (*types.AccountInfo, error) {
 	}
 	var accountInfo types.AccountInfo
 	var ok bool
-	ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfo)
-	if err != nil || !ok {
-		return nil, fmt.Errorf("get account info error: %v", err)
+	switch strings.ToLower(c.ChainName) {
+	// todo 目前这里先做硬编码先，后续在进行修改
+	case "polkadot":
+		var accountInfoProviders expand.AccountInfoWithProviders
+		ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfoProviders)
+		if err != nil || !ok {
+			return nil, fmt.Errorf("get account info error: %v", err)
+		}
+		accountInfo.Nonce = accountInfoProviders.Nonce
+		accountInfo.Refcount = accountInfoProviders.Consumers
+		accountInfo.Data.Free = accountInfoProviders.Data.Free
+		accountInfo.Data.FreeFrozen = accountInfoProviders.Data.FreeFrozen
+		accountInfo.Data.MiscFrozen = accountInfoProviders.Data.MiscFrozen
+		accountInfo.Data.Reserved = accountInfoProviders.Data.Reserved
+	default:
+		ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfo)
+		if err != nil || !ok {
+			return nil, fmt.Errorf("get account info error: %v", err)
+		}
 	}
+
 	return &accountInfo, nil
 }
 

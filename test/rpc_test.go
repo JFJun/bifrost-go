@@ -22,3 +22,18 @@ func Test_GetBlockByNumber(t *testing.T) {
 	d, _ := json.Marshal(resp)
 	fmt.Println(string(d))
 }
+
+func Test_GetAccountInfo(t *testing.T) {
+	c, err := client.New("wss://rpc.polkadot.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.SetPrefix(ss58.PolkadotPrefix)
+	ai, err := c.GetAccountInfo("1exaAg2VJRQbyUBAeXcktChCAqjVP9TUxF3zo23R2T6EGdE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, _ := json.Marshal(ai)
+	fmt.Println(string(d))
+	fmt.Println(ai.Data.Free.String())
+}
