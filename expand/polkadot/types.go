@@ -6,7 +6,7 @@ import (
 )
 
 type PolkadotEventRecords struct {
-	types.EventRecords
+	base.BaseEventRecords
 	Claims_Claimed                    []EventClaimsClaimed
 	ElectionsPhragmen_VoterReported   []EventElectionsPhragmenVoterReported
 	ElectionsPhragmen_MemberRenounced []EventElectionsPhragmenMemberRenounced

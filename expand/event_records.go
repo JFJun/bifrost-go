@@ -2,6 +2,7 @@ package expand
 
 import (
 	"github.com/JFJun/bifrost-go/expand/bifrost"
+	"github.com/JFJun/bifrost-go/expand/kusama"
 	"github.com/JFJun/bifrost-go/expand/polkadot"
 	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 	"strings"
@@ -22,6 +23,13 @@ func DecodeEventRecords(meta *types.Metadata, rawData string, chainName string) 
 	switch strings.ToLower(chainName) {
 	case "polkadot":
 		var events polkadot.PolkadotEventRecords
+		err := e.DecodeEventRecords(meta, &events)
+		if err != nil {
+			return nil, err
+		}
+		ier = &events
+	case "kusama":
+		var events kusama.KusamaEventRecords
 		err := e.DecodeEventRecords(meta, &events)
 		if err != nil {
 			return nil, err

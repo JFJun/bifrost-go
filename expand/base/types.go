@@ -23,6 +23,8 @@ type BaseEventRecords struct {
 	Currencies_Deposited      []EventCurrenciesDeposited
 	Currencies_Withdrawn      []EventCurrenciesWithdrawn
 
+	Claims_Claimed []EventClaimsClaimed
+
 	Vesting_VestingScheduleAdded    []EventVestingVestingScheduleAdded
 	Vesting_Claimed                 []EventVestingClaimed
 	Vesting_VestingSchedulesUpdated []EventVestingVestingSchedulesUpdated
@@ -46,6 +48,13 @@ func (d *BaseEventRecords) GetSystemExtrinsicFailed() []types.EventSystemExtrins
 	return d.System_ExtrinsicFailed
 }
 
+type EventClaimsClaimed struct {
+	Phase           types.Phase
+	AccountId       types.AccountID
+	EthereumAddress VecU8L20
+	Balance         types.U128
+	Topics          []types.Hash
+}
 type EventTreasuryBountyProposed struct {
 	Phase       types.Phase
 	BountyIndex types.U32
