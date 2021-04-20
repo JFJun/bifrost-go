@@ -9,8 +9,8 @@ import (
 	"github.com/JFJun/bifrost-go/expand"
 	"github.com/JFJun/bifrost-go/models"
 	"github.com/JFJun/bifrost-go/utils"
+	"github.com/JFJun/bifrost-go/base"
 	"github.com/JFJun/go-substrate-crypto/ss58"
-
 	gsrc "github.com/stafiprotocol/go-substrate-rpc-client"
 	gsClient "github.com/stafiprotocol/go-substrate-rpc-client/client"
 	"github.com/stafiprotocol/go-substrate-rpc-client/rpc"
@@ -30,14 +30,19 @@ type Client struct {
 	SpecVersion        int
 	TransactionVersion int
 	genesisHash        string
+	BasicType          *base.BasicTypes
 	url                string
 }
 
-func New(url string) (*Client, error) {
+func New(url string, noPalletIndices bool) (*Client, error) {
 	c := new(Client)
 	c.url = url
 	var err error
-
+	//注册链的基本信息
+	c.BasicType, err = base.InitBasicTypesByHexData()
+	if err != nil {
+		return nil, fmt.Errorf("init base type error: %v", err)
+	}
 	// 初始化rpc客户端
 	c.C, err = gsrc.NewSubstrateAPI(url)
 	if err != nil {
@@ -48,7 +53,14 @@ func New(url string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.prefix = ss58.BifrostPrefix
+	/*
+		设置prefix
+	*/
+	if len(c.prefix) == 0 {
+		c.prefix, _ = c.BasicType.GetChainPrefix(c.ChainName)
+	}
+	//设置默认地址不需要0xff
+	expand.SetSerDeOptions(noPalletIndices)
 	return c, nil
 }
 
@@ -133,6 +145,14 @@ func (c *Client) GetBlockByNumber(height int64) (*models.BlockResponse, error) {
 	return c.GetBlockByHash(blockHash)
 }
 
+func (c *Client) GetBlockHashByNumber(height int64) (*types.Hash, error) {
+	hash, err := c.C.RPC.Chain.GetBlockHash(uint64(height))
+	if err != nil {
+		return nil, fmt.Errorf("get block hash error:%v,height:%d", err, height)
+	}
+	return &hash,nil
+}
+
 /*
 根据blockHash解析block，返回block是否包含交易
 */
@@ -159,7 +179,6 @@ func (c *Client) GetBlockByHash(blockHash string) (*models.BlockResponse, error)
 		if err != nil {
 			return nil, err
 		}
-
 		err = c.parseExtrinsicByStorage(blockHash, blockResp)
 		if err != nil {
 			return nil, err
@@ -173,7 +192,6 @@ type parseBlockExtrinsicParams struct {
 	nonce                         int64
 	extrinsicIdx, length          int
 }
-
 /*
 解析外部交易extrinsic
 */
@@ -215,7 +233,6 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 		if err != nil {
 			return fmt.Errorf("json unmarshal extrinsic decode error: %v", err)
 		}
-
 		switch resp.CallModule {
 		case "Timestamp":
 			for _, param := range resp.Params {
@@ -224,7 +241,7 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 				}
 			}
 		case "Balances":
-			if resp.CallModuleFunction == "transfer" || resp.CallModuleFunction == "transfer_keep_alive" {
+			if resp.CallModuleFunction == "transfer" || resp.CallModuleFunction == "transfer_keep_alive"{
 				blockData := parseBlockExtrinsicParams{}
 				blockData.from, _ = ss58.EncodeByPubHex(resp.AccountId, c.prefix)
 				blockData.era = resp.Era
@@ -232,7 +249,6 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 				blockData.nonce = resp.Nonce
 				blockData.extrinsicIdx = i
 				blockData.fee, err = c.GetPartialFee(extrinsic, blockResp.ParentHash)
-
 				blockData.txid = c.createTxHash(extrinsic)
 				blockData.length = resp.Length
 				for _, param := range resp.Params {
@@ -348,8 +364,10 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 	if err != nil {
 		return fmt.Errorf("get storage data error: %v", err)
 	}
+
 	//解析event信息
 	ier, err := expand.DecodeEventRecords(c.Meta, result.(string), c.ChainName)
+	
 	if err != nil {
 		return fmt.Errorf("decode event data error: %v", err)
 	}

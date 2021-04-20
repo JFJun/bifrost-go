@@ -28,6 +28,8 @@ type KusamaEventRecords struct {
 	ElectionsPhragmen_Renounced         []EventElectionsPhragmenRenounced
 	ElectionsPhragmen_CandidateSlashed  []EventElectionsPhragmenCandidateSlashed
 	ElectionsPhragmen_SeatHolderSlashed []EventElectionsPhragmenSeatHolderSlashed
+	ElectionProviderMultiPhase_SolutionStored []ElectionProviderMultiPhaseSolutionStored
+	ElectionProviderMultiPhase_UnsignedPhaseStarted []EventElectionProviderMultiPhaseUnsignedPhaseStarted
 	Bounties_BountyProposed             []EventBountiesBountyProposed
 	Bounties_BountyRejected             []EventBountiesBountyRejected
 	Bounties_BountyBecameActive         []EventBountiesBountyBecameActive
@@ -40,6 +42,16 @@ type KusamaEventRecords struct {
 	Tips_TipClosed                      []EventTipsTipClosed
 	Tips_TipRetracted                   []EventTipsTipRetracted
 	Tips_TipSlashed                     []EventTipsTipSlashed
+}
+type EventElectionProviderMultiPhaseUnsignedPhaseStarted struct {
+	Phase     types.Phase
+	BountyIndex types.U32
+	Topics    []types.Hash
+}
+type ElectionProviderMultiPhaseSolutionStored struct {
+	Phase     types.Phase
+	ElectionCompute types.ElectionCompute
+	Topics    []types.Hash
 }
 type EventTipsTipSlashed struct {
 	Phase     types.Phase

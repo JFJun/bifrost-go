@@ -15,6 +15,17 @@ type PolkadotEventRecords struct {
 	ElectionsPhragmen_EmptyTerm       []EventElectionsPhragmenEmptyTerm
 	//ElectionsPhragmen_NewTerm		[]EventElectionsPhragmenNewTerm		暂不支持解析
 	Democracy_Blacklisted []EventDemocracyBlacklisted
+	Tips_TipClosing []EventTipsTipClosing
+	Tips_NewTip []EventTreasuryNewTip
+	ElectionProviderMultiPhase_UnsignedPhaseStarted []EventElectionProviderMultiPhaseUnsignedPhaseStarted
+	ElectionProviderMultiPhase_SolutionStored []ElectionProviderMultiPhaseSolutionStored
+	
+}
+
+type EventTreasuryNewTip struct {
+	Phase  types.Phase
+	Hash   types.Hash
+	Topics []types.Hash
 }
 
 func (p PolkadotEventRecords) GetBalancesTransfer() []types.EventBalancesTransfer {
@@ -27,6 +38,23 @@ func (p PolkadotEventRecords) GetSystemExtrinsicSuccess() []types.EventSystemExt
 
 func (p PolkadotEventRecords) GetSystemExtrinsicFailed() []types.EventSystemExtrinsicFailed {
 	return p.System_ExtrinsicFailed
+}
+
+type EventElectionProviderMultiPhaseUnsignedPhaseStarted struct {
+	Phase     types.Phase
+	BountyIndex types.U32
+	Topics    []types.Hash
+}
+type ElectionProviderMultiPhaseSolutionStored struct {
+	Phase     types.Phase
+	ElectionCompute types.ElectionCompute
+	Topics    []types.Hash
+}
+// EventTreasuryTipClosing is emitted when a tip suggestion has reached threshold and is closing.
+type EventTipsTipClosing struct {
+	Phase  types.Phase
+	Hash   types.Hash
+	Topics []types.Hash
 }
 
 type EventDemocracyBlacklisted struct {
