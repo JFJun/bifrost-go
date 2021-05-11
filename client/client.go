@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/JFJun/bifrost-go/base"
 	"github.com/JFJun/bifrost-go/expand"
 	"github.com/JFJun/bifrost-go/models"
 	"github.com/JFJun/bifrost-go/utils"
-	"github.com/JFJun/bifrost-go/base"
 	"github.com/JFJun/go-substrate-crypto/ss58"
 	gsrc "github.com/stafiprotocol/go-substrate-rpc-client"
 	gsClient "github.com/stafiprotocol/go-substrate-rpc-client/client"
@@ -150,7 +150,7 @@ func (c *Client) GetBlockHashByNumber(height int64) (*types.Hash, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get block hash error:%v,height:%d", err, height)
 	}
-	return &hash,nil
+	return &hash, nil
 }
 
 /*
@@ -192,6 +192,7 @@ type parseBlockExtrinsicParams struct {
 	nonce                         int64
 	extrinsicIdx, length          int
 }
+
 /*
 解析外部交易extrinsic
 */
@@ -241,7 +242,7 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 				}
 			}
 		case "Balances":
-			if resp.CallModuleFunction == "transfer" || resp.CallModuleFunction == "transfer_keep_alive"{
+			if resp.CallModuleFunction == "transfer" || resp.CallModuleFunction == "transfer_keep_alive" {
 				blockData := parseBlockExtrinsicParams{}
 				blockData.from, _ = ss58.EncodeByPubHex(resp.AccountId, c.prefix)
 				blockData.era = resp.Era
@@ -367,7 +368,7 @@ func (c *Client) parseExtrinsicByStorage(blockHash string, blockResp *models.Blo
 
 	//解析event信息
 	ier, err := expand.DecodeEventRecords(c.Meta, result.(string), c.ChainName)
-	
+
 	if err != nil {
 		return fmt.Errorf("decode event data error: %v", err)
 	}
@@ -476,7 +477,7 @@ func (c *Client) GetAccountInfo(address string) (*types.AccountInfo, error) {
 	var ok bool
 	switch strings.ToLower(c.ChainName) {
 	// todo 目前这里先做硬编码先，后续在进行修改
-	case "polkadot":
+	case "polkadot", "kusama":
 		var accountInfoProviders expand.AccountInfoWithProviders
 		ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfoProviders)
 		if err != nil || !ok {
