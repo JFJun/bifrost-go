@@ -12,6 +12,7 @@ import (
 	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
 	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 	"io"
+	"math/big"
 	"reflect"
 )
 
@@ -328,11 +329,25 @@ type AccountInfoWithProviders struct {
 	Nonce       types.U32 `json:"nonce"`
 	Consumers   types.U32 `json:"consumers"`
 	Providers   types.U32 `json:"providers"`
-	Sufficients types.U32 `json:"providers"`
+	Sufficients types.U32 `json:"sufficients"`
 	Data        struct {
 		Free       types.U128 `json:"free"`
 		Reserved   types.U128 `json:"reserved"`
 		MiscFrozen types.U128 `json:"misc_frozen"`
 		FreeFrozen types.U128 `json:"free_frozen"`
 	} `json:"data"`
+}
+
+type FeeDetail struct {
+	BaseFee           types.U128
+	LenFee            types.U128
+	AdjustedWeightFee types.U128
+}
+
+func (this *FeeDetail) FeeTotal() types.U128 {
+	var result = big.NewInt(0)
+	result = result.Add(this.BaseFee.Int, this.LenFee.Int)
+	result = result.Add(result, this.AdjustedWeightFee.Int)
+
+	return types.NewU128(*result)
 }

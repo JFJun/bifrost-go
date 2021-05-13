@@ -18,6 +18,7 @@ import (
 	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 	"golang.org/x/crypto/blake2b"
 	"log"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -188,9 +189,11 @@ func (c *Client) GetBlockByHash(blockHash string) (*models.BlockResponse, error)
 }
 
 type parseBlockExtrinsicParams struct {
-	from, to, sig, era, txid, fee string
-	nonce                         int64
-	extrinsicIdx, length          int
+	from, to, sig, era, txid string
+	nonce                    int64
+	extrinsicIdx, length     int
+	amount                   string
+	Fee                      string
 }
 
 /*
@@ -249,12 +252,15 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 				blockData.sig = resp.Signature
 				blockData.nonce = resp.Nonce
 				blockData.extrinsicIdx = i
-				blockData.fee, err = c.GetPartialFee(extrinsic, blockResp.ParentHash)
+				blockData.Fee, err = c.GetPartialFee(extrinsic, blockResp.ParentHash)
 				blockData.txid = c.createTxHash(extrinsic)
 				blockData.length = resp.Length
 				for _, param := range resp.Params {
 					if param.Name == "dest" {
 						blockData.to, _ = ss58.EncodeByPubHex(param.Value.(string), c.prefix)
+					}
+					if param.Name == "value" {
+						blockData.amount = param.Value.(string)
 					}
 				}
 				params = append(params, blockData)
@@ -286,7 +292,7 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 													blockData.sig = resp.Signature
 													blockData.nonce = resp.Nonce
 													blockData.extrinsicIdx = i
-													blockData.fee, _ = c.GetPartialFee(extrinsic, blockResp.ParentHash)
+													blockData.Fee, _ = c.GetPartialFee(extrinsic, blockResp.ParentHash)
 													blockData.txid = c.createTxHash(extrinsic)
 													blockData.to, _ = ss58.EncodeByPubHex(arg.ValueRaw, c.prefix)
 													params = append(params, blockData)
@@ -322,8 +328,9 @@ func (c *Client) parseExtrinsicByDecode(extrinsics []string, blockResp *models.B
 		e.ToAddress = param.to
 		e.Nonce = param.nonce
 		e.Era = param.era
-		e.Fee = param.fee
+		e.Fee = param.Fee
 		e.ExtrinsicIndex = param.extrinsicIdx
+		e.Amount = param.amount
 		//e.Txid = txid
 		e.Txid = param.txid
 		e.ExtrinsicLength = param.length
@@ -519,4 +526,31 @@ func (c *Client) GetPartialFee(extrinsic, parentHash string) (string, error) {
 		return "", fmt.Errorf("partialFee is not string type: %v", result["partialFee"])
 	}
 	return fee, nil
+}
+
+func (c *Client) GetPartialFeeDetail(extrinsic, parentHash string) (*expand.FeeDetail, error) {
+	if !strings.HasPrefix(extrinsic, "0x") {
+		extrinsic = "0x" + extrinsic
+	}
+	var result map[string]interface{}
+	err := c.C.Client.Call(&result, "payment_queryFeeDetails", extrinsic, parentHash)
+	if err != nil {
+		return nil, fmt.Errorf("get payment info error: %v", err)
+	}
+	result = result["inclusionFee"].(map[string]interface{})
+	var resultObj = &expand.FeeDetail{}
+	decodeFunc := func(val string) types.U128 {
+		if strings.HasPrefix(val, "0x") {
+			val = val[2:]
+		}
+
+		bigVal := big.NewInt(0)
+		bigVal.SetString(val, 16)
+		return types.NewU128(*bigVal)
+	}
+
+	resultObj.LenFee = decodeFunc(result["lenFee"].(string))
+	resultObj.BaseFee = decodeFunc(result["baseFee"].(string))
+	resultObj.AdjustedWeightFee = decodeFunc(result["adjustedWeightFee"].(string))
+	return resultObj, nil
 }
