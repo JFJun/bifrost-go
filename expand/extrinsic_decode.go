@@ -1,4 +1,5 @@
 package expand
+
 /*
 扩展：解析extrinsic
 	substrate2.0的extrinsic都是这样，所以这里的变动其实很小
@@ -46,7 +47,6 @@ func NewExtrinsicDecoder(meta *types.Metadata) (*ExtrinsicDecoder, error) {
 	}
 	return ed, nil
 }
-
 
 func (ed *ExtrinsicDecoder) ProcessExtrinsicDecoder(decoder scale.Decoder) error {
 	var length types.UCompact
@@ -228,7 +228,7 @@ func (ed *ExtrinsicDecoder) decodeCallIndex(decoder scale.Decoder) error {
 				ExtrinsicParam{
 					Name:  "value",
 					Type:  "Compact<Balance>",
-					Value: utils.UCompactToBigInt(b).Int64(),
+					Value: utils.UCompactToBigInt(b).String(),
 				})
 		}
 	case "Utility":
@@ -281,6 +281,3 @@ func (ed *ExtrinsicDecoder) decodeCallIndex(decoder scale.Decoder) error {
 	}
 	return nil
 }
-
-
-

@@ -3,8 +3,8 @@ package tx
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/JFJun/bifrost-go/expand"
 	"github.com/JFJun/bifrost-go/utils"
+	"github.com/JFJun/bifrost-go/expand"
 	"github.com/JFJun/go-substrate-crypto/crypto"
 	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 	"golang.org/x/crypto/blake2b"
@@ -82,6 +82,55 @@ func (tx *SubstrateTransaction) SetEra(blockNumber, eraPeriod uint64) *Substrate
 func (tx *SubstrateTransaction) SetCall(call types.Call) *SubstrateTransaction {
 	tx.call = call
 	return tx
+}
+
+
+func (tx *SubstrateTransaction) ReturnSign() (*expand.Extrinsic,types.SignatureOptions,[]byte,error){
+	ext := expand.NewExtrinsic(tx.call)
+	o := types.SignatureOptions{
+		BlockHash:          types.NewHash(types.MustHexDecodeString(tx.BlockHash)),
+		GenesisHash:        types.NewHash(types.MustHexDecodeString(tx.GenesisHash)),
+		Nonce:              types.NewUCompactFromUInt(tx.Nonce),
+		SpecVersion:        types.NewU32(tx.SpecVersion),
+		Tip:                types.NewUCompactFromUInt(tx.Tip),
+		TransactionVersion: types.NewU32(tx.TransactionVersion),
+	}
+	era := tx.getEra()
+	if era != nil {
+		o.Era = *era
+	}
+	if ext.Type() != types.ExtrinsicVersion4 {
+		return &expand.Extrinsic{}, types.SignatureOptions{},nil,fmt.Errorf("unsupported extrinsic version: %v (isSigned: %v, type: %v)", ext.Version, ext.IsSigned(), ext.Type())
+	}
+	mb, err := types.EncodeToBytes(ext.Method)
+	if err != nil {
+		return &expand.Extrinsic{}, types.SignatureOptions{},nil,err
+	}
+	eras := o.Era
+	if !o.Era.IsMortalEra {
+		eras = types.ExtrinsicEra{IsImmortalEra: true}
+	}
+	payload := types.ExtrinsicPayloadV4{
+		ExtrinsicPayloadV3: types.ExtrinsicPayloadV3{
+			Method:      mb,
+			Era:         eras,
+			Nonce:       o.Nonce,
+			Tip:         o.Tip,
+			SpecVersion: o.SpecVersion,
+			GenesisHash: o.GenesisHash,
+			BlockHash:   o.BlockHash,
+		},
+		TransactionVersion: o.TransactionVersion,
+	}
+	data, err := types.EncodeToBytes(payload)
+	if err != nil {
+		return &expand.Extrinsic{}, types.SignatureOptions{},nil,fmt.Errorf("encode payload error: %v", err)
+	}
+	if len(data) > 256 {
+		h := blake2b.Sum256(data)
+		data = h[:]
+	}
+	return &ext,o,data,nil
 }
 
 func (tx *SubstrateTransaction) SignTransaction(privateKey string, signType int) (string, error) {
