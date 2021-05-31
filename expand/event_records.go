@@ -66,7 +66,7 @@ func CheckIsImplementedAllEvent(meta *types.Metadata, eventRecordType reflect.Ty
 	}
 
 	// 获取所有没有实现的事件
-	for _, moduleItem := range meta.AsMetadataV12.Modules {
+	for _, moduleItem := range meta.AsMetadataV13.Modules {
 		for _, eventItem := range moduleItem.Events {
 			eventName := fmt.Sprintf("%v_%v", moduleItem.Name, eventItem.Name)
 			if existFunc(eventName) == false {
