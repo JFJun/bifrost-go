@@ -3,8 +3,8 @@ package base
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	"github.com/JFJun/go-substrate-rpc-client/v3/scale"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 )
 
 type BaseEventRecords struct {

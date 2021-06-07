@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JFJun/bifrost-go/utils"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"github.com/huandu/xstrings"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 )
 
 /*
@@ -205,94 +205,96 @@ func newV12(module []types.ModuleMetadataV12) *v12 {
 /*
 Balances.transfer
 */
-func (e *MetadataExpand)BalanceTransferCall(to string,amount uint64)(types.Call,error){
+func (e *MetadataExpand) BalanceTransferCall(to string, amount uint64) (types.Call, error) {
 	var (
 		call types.Call
 	)
-	callIdx,err:=e.MV.GetCallIndex("Balances","transfer")
+	callIdx, err := e.MV.GetCallIndex("Balances", "transfer")
 	if err != nil {
-		return call,err
+		return call, err
 	}
-	recipientPubkey :=utils.AddressToPublicKey(to)
+	recipientPubkey := utils.AddressToPublicKey(to)
 	var ma MultiAddress
 	ma.SetTypes(0)
 	ma.AccountId = types.NewAccountID(types.MustHexDecodeString(recipientPubkey))
-	return NewCall(callIdx,ma,
+	return NewCall(callIdx, ma,
 		types.NewUCompactFromUInt(amount))
 
 }
+
 /*
 Balances.transfer_keep_alive
 */
-func (e *MetadataExpand)BalanceTransferKeepAliveCall(to string,amount uint64)(types.Call,error){
+func (e *MetadataExpand) BalanceTransferKeepAliveCall(to string, amount uint64) (types.Call, error) {
 	var (
 		call types.Call
 	)
-	callIdx,err:=e.MV.GetCallIndex("Balances","transfer_keep_alive")
+	callIdx, err := e.MV.GetCallIndex("Balances", "transfer_keep_alive")
 	if err != nil {
-		return call,err
+		return call, err
 	}
-	recipientPubkey :=utils.AddressToPublicKey(to)
+	recipientPubkey := utils.AddressToPublicKey(to)
 	var ma MultiAddress
 	ma.SetTypes(0)
 	ma.AccountId = types.NewAccountID(types.MustHexDecodeString(recipientPubkey))
-	return NewCall(callIdx,ma,
+	return NewCall(callIdx, ma,
 		types.NewUCompactFromUInt(amount))
 
 }
+
 /*
 Utility.batch
 keepAlive: true->Balances.transfer_keep_alive	false->Balances.transfer
 */
-func (e *MetadataExpand)UtilityBatchTxCall(toAmount map[string]uint64,keepAlive bool)(types.Call,error){
-	var  (
+func (e *MetadataExpand) UtilityBatchTxCall(toAmount map[string]uint64, keepAlive bool) (types.Call, error) {
+	var (
 		call types.Call
-		err error
+		err  error
 	)
-	if len(toAmount)==0 {
-		return call,errors.New("toAmount is null")
+	if len(toAmount) == 0 {
+		return call, errors.New("toAmount is null")
 	}
 	var calls []types.Call
-	for to,amount:=range toAmount{
+	for to, amount := range toAmount {
 		var (
 			btCall types.Call
 		)
 		if keepAlive {
-			btCall,err = e.BalanceTransferKeepAliveCall(to,amount)
-		}else{
-			btCall,err = e.BalanceTransferCall(to,amount)
+			btCall, err = e.BalanceTransferKeepAliveCall(to, amount)
+		} else {
+			btCall, err = e.BalanceTransferCall(to, amount)
 		}
 		if err != nil {
 			return call, err
 		}
-		calls = append(calls,btCall)
+		calls = append(calls, btCall)
 	}
-	callIdx,err:=e.MV.GetCallIndex("Utility","batch")
-	if err != nil {
-		return call,err
-	}
-	return NewCall(callIdx,calls)
-}
-/*
-transfer with memo
-*/
-func (e *MetadataExpand)UtilityBatchTxWithMemo(to ,memo string,amount uint64)(types.Call,error){
-	var (
-		call types.Call
-	)
-	btCall,err := e.BalanceTransferCall(to,amount)
+	callIdx, err := e.MV.GetCallIndex("Utility", "batch")
 	if err != nil {
 		return call, err
 	}
-	smCallIdx,err :=e.MV.GetCallIndex("System","remark")
-	if err != nil {
-		return call,err
-	}
-	smCall,err:=NewCall(smCallIdx,memo)
-	ubCallIdx,err:=e.MV.GetCallIndex("Utility","batch")
-	if err != nil {
-		return call,err
-	}
-	return NewCall(ubCallIdx,btCall,smCall)
+	return NewCall(callIdx, calls)
 }
 
+/*
+transfer with memo
+*/
+func (e *MetadataExpand) UtilityBatchTxWithMemo(to, memo string, amount uint64) (types.Call, error) {
+	var (
+		call types.Call
+	)
+	btCall, err := e.BalanceTransferCall(to, amount)
+	if err != nil {
+		return call, err
+	}
+	smCallIdx, err := e.MV.GetCallIndex("System", "remark")
+	if err != nil {
+		return call, err
+	}
+	smCall, err := NewCall(smCallIdx, memo)
+	ubCallIdx, err := e.MV.GetCallIndex("Utility", "batch")
+	if err != nil {
+		return call, err
+	}
+	return NewCall(ubCallIdx, btCall, smCall)
+}

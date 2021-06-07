@@ -2,7 +2,7 @@ package kusama
 
 import (
 	"github.com/JFJun/bifrost-go/expand/base"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 )
 
 func (p KusamaEventRecords) GetBalancesTransfer() []types.EventBalancesTransfer {

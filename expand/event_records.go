@@ -4,7 +4,7 @@ import (
 	"github.com/JFJun/bifrost-go/expand/bifrost"
 	"github.com/JFJun/bifrost-go/expand/kusama"
 	"github.com/JFJun/bifrost-go/expand/polkadot"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"strings"
 )
 

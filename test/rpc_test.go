@@ -15,7 +15,7 @@ func Test_GetBlockByNumber(t *testing.T) {
 	}
 	c.SetPrefix(ss58.PolkadotPrefix)
 	//expand.SetSerDeOptions(false)
-	resp, err := c.GetBlockByNumber(3901804)
+	resp, err := c.GetBlockByNumber(5396983)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,12 +24,15 @@ func Test_GetBlockByNumber(t *testing.T) {
 }
 
 func Test_GetAccountInfo(t *testing.T) {
-	c, err := client.New("wss://rpc.polkadot.io")
+	url := "wss://kusama-rpc.polkadot.io" // wss://kusama-rpc.polkadot.io
+	address := "DXuShaYiV3gqYspg7mzdDmweS9p79Z9u3wEY9FH3rHaj6yN"
+
+	c, err := client.New(url)
 	if err != nil {
 		t.Fatal(err)
 	}
-	c.SetPrefix(ss58.PolkadotPrefix)
-	ai, err := c.GetAccountInfo("1exaAg2VJRQbyUBAeXcktChCAqjVP9TUxF3zo23R2T6EGdE")
+	// 000000000000000001000000000000000047ab56020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	ai, err := c.GetAccountInfo(address)
 	if err != nil {
 		t.Fatal(err)
 	}

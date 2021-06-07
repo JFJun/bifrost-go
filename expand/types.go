@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/JFJun/bifrost-go/uint128"
 	"github.com/JFJun/bifrost-go/utils"
+	"github.com/JFJun/go-substrate-rpc-client/v3/scale"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"github.com/huandu/xstrings"
 	"github.com/shopspring/decimal"
-	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 	"io"
 	"reflect"
 )
@@ -325,10 +325,11 @@ type ExtrinsicSignatureV4 struct {
 https://github.com/polkadot-js/api/packages/types/src/interfaces/system/types.ts p13
 */
 type AccountInfoWithProviders struct {
-	Nonce     types.U32 `json:"nonce"`
-	Consumers types.U32 `json:"consumers"`
-	Providers types.U32 `json:"providers"`
-	Data      struct {
+	Nonce       types.U32 `json:"nonce"`
+	Consumers   types.U32 `json:"consumers"`
+	Refcount    types.U32 `json:"refcount"`
+	Sufficients types.U32 `json:"sufficients"`
+	Data        struct {
 		Free       types.U128 `json:"free"`
 		Reserved   types.U128 `json:"reserved"`
 		MiscFrozen types.U128 `json:"misc_frozen"`

@@ -1,4 +1,5 @@
 package expand
+
 /*
 扩展：解析extrinsic
 	substrate2.0的extrinsic都是这样，所以这里的变动其实很小
@@ -7,9 +8,9 @@ package expand
 import (
 	"fmt"
 	"github.com/JFJun/bifrost-go/utils"
+	"github.com/JFJun/go-substrate-rpc-client/v3/scale"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"github.com/huandu/xstrings"
-	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
 )
 
 type ExtrinsicDecoder struct {
@@ -46,7 +47,6 @@ func NewExtrinsicDecoder(meta *types.Metadata) (*ExtrinsicDecoder, error) {
 	}
 	return ed, nil
 }
-
 
 func (ed *ExtrinsicDecoder) ProcessExtrinsicDecoder(decoder scale.Decoder) error {
 	var length types.UCompact
@@ -281,6 +281,3 @@ func (ed *ExtrinsicDecoder) decodeCallIndex(decoder scale.Decoder) error {
 	}
 	return nil
 }
-
-
-

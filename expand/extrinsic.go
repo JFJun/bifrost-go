@@ -20,13 +20,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"io"
 	"math/big"
 	"strings"
 
-	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
-	"github.com/stafiprotocol/go-substrate-rpc-client/signature"
+	"github.com/JFJun/go-substrate-rpc-client/v3/scale"
+	"github.com/JFJun/go-substrate-rpc-client/v3/signature"
 )
 
 const (
@@ -151,7 +151,6 @@ func (e *Extrinsic) Sign(signer signature.KeyringPair, o types.SignatureOptions)
 	var signerPubKey MultiAddress
 	signerPubKey.SetTypes(0)
 	signerPubKey.AccountId = types.NewAccountID(signer.PublicKey)
-
 
 	sig, err := payload.Sign(signer)
 	if err != nil {

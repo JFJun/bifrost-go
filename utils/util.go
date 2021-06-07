@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/JFJun/go-substrate-crypto/ss58"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"math/big"
 	"strings"
 )
 
-func RemoveHex0x(hexStr string)string{
-	if	strings.HasPrefix(hexStr,"0x"){
+func RemoveHex0x(hexStr string) string {
+	if strings.HasPrefix(hexStr, "0x") {
 		return hexStr[2:]
 	}
 	return hexStr
@@ -30,8 +30,8 @@ func U256(v string) *big.Int {
 	return n
 }
 
-func UCompactToBigInt(u types.UCompact)*big.Int{
-	b:=big.Int(u)
+func UCompactToBigInt(u types.UCompact) *big.Int {
+	b := big.Int(u)
 	return &b
 }
 
@@ -44,9 +44,9 @@ func IntInSlice(a int, list []int) bool {
 	return false
 }
 
-func IsNumberString(str string)bool{
-	for _,a:=range str{
-		if a >57 || a<48 {
+func IsNumberString(str string) bool {
+	for _, a := range str {
+		if a > 57 || a < 48 {
 			return false
 		}
 	}
@@ -56,8 +56,8 @@ func IntToHex(i interface{}) string {
 	return fmt.Sprintf("%x", i)
 }
 
-func CheckStructData(object interface{}){
-	d,_:=json.Marshal(object)
+func CheckStructData(object interface{}) {
+	d, _ := json.Marshal(object)
 	fmt.Println(string(d))
 }
 
@@ -84,9 +84,8 @@ func Remove0X(hexData string) string {
 	return hexData
 }
 
-func ZeroBytes(data []byte){
-	for i,_:=range data{
+func ZeroBytes(data []byte) {
+	for i, _ := range data {
 		data[i] = 0
 	}
 }
-
