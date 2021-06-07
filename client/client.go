@@ -11,11 +11,11 @@ import (
 	"github.com/JFJun/bifrost-go/utils"
 	"github.com/JFJun/go-substrate-crypto/ss58"
 
-	gsrc "github.com/stafiprotocol/go-substrate-rpc-client"
-	gsClient "github.com/stafiprotocol/go-substrate-rpc-client/client"
-	"github.com/stafiprotocol/go-substrate-rpc-client/rpc"
-	"github.com/stafiprotocol/go-substrate-rpc-client/scale"
-	"github.com/stafiprotocol/go-substrate-rpc-client/types"
+	gsrc "github.com/JFJun/go-substrate-rpc-client/v3"
+	gsClient "github.com/JFJun/go-substrate-rpc-client/v3/client"
+	"github.com/JFJun/go-substrate-rpc-client/v3/rpc"
+	"github.com/JFJun/go-substrate-rpc-client/v3/scale"
+	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"golang.org/x/crypto/blake2b"
 	"log"
 	"strconv"
@@ -454,30 +454,21 @@ func (c *Client) GetAccountInfo(address string) (*types.AccountInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create System.Account storage error: %v", err)
 	}
-	var accountInfo types.AccountInfo
-	var ok bool
-	switch strings.ToLower(c.ChainName) {
-	// todo 目前这里先做硬编码先，后续在进行修改
-	case "polkadot":
-		var accountInfoProviders expand.AccountInfoWithProviders
-		ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfoProviders)
-		if err != nil || !ok {
-			return nil, fmt.Errorf("get account info error: %v", err)
-		}
-		accountInfo.Nonce = accountInfoProviders.Nonce
-		accountInfo.Refcount = accountInfoProviders.Consumers
-		accountInfo.Data.Free = accountInfoProviders.Data.Free
-		accountInfo.Data.FreeFrozen = accountInfoProviders.Data.FreeFrozen
-		accountInfo.Data.MiscFrozen = accountInfoProviders.Data.MiscFrozen
-		accountInfo.Data.Reserved = accountInfoProviders.Data.Reserved
-	default:
-		ok, err = c.C.RPC.State.GetStorageLatest(storage, &accountInfo)
-		if err != nil || !ok {
-			return nil, fmt.Errorf("get account info error: %v", err)
-		}
+	h, _ := c.C.RPC.Chain.GetBlockHashLatest()
+	raw, err := c.C.RPC.State.GetStorageRaw(storage, h)
+	if err != nil {
+		fmt.Println(1111)
 	}
+	fmt.Println("Key:", storage.Hex())
+	fmt.Println(len(*raw))
+	fmt.Println(raw.Hex())
+	fmt.Println(len(raw.Hex()))
 
-	return &accountInfo, nil
+	accountInfo, err := c.C.RPC.State.GetStorageAccountInfo(storage, h)
+	if err != nil {
+		return nil, fmt.Errorf("get account info error: %v", err)
+	}
+	return accountInfo, nil
 }
 
 /*
