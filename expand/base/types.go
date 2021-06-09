@@ -36,6 +36,13 @@ type BaseEventRecords struct {
 
 	Balances_ReserveRepatriated []EventBalancesReserveRepatriated
 	Proxy_Announced             []EventProxyAnnounced
+	System_Remarked             []EventSystemRemarked
+}
+type EventSystemRemarked struct {
+	Phase     types.Phase
+	AccountId types.AccountID
+	Hash      types.Hash
+	Topics    []types.Hash
 }
 
 func (d *BaseEventRecords) GetBalancesTransfer() []types.EventBalancesTransfer {
@@ -292,3 +299,17 @@ func (d *Log) Decode(decoder scale.Decoder) error {
 https://github.com/polkadot-js/api/blob/master/packages/types/src/interfaces/collective/types.ts
 */
 type MemberCount types.U32
+
+type AccountBalance struct {
+	Who     types.AccountID
+	Balance types.U128
+}
+
+type OptionElectionCompute struct {
+	HaveValue       bool
+	ElectionCompute types.ElectionCompute
+}
+
+func (o *OptionElectionCompute) Decode(decoder scale.Decoder) error {
+	return decoder.DecodeOption(&o.HaveValue, &o.ElectionCompute)
+}
