@@ -336,3 +336,15 @@ func (d *TokenSymbol) Decode(decoder scale.Decoder) error {
 }
 
 type AssetId types.U32
+
+func (p BifrostEventRecords) GetBalancesTransfer() []types.EventBalancesTransfer {
+	return p.Balances_Transfer
+}
+
+func (p BifrostEventRecords) GetSystemExtrinsicSuccess() []types.EventSystemExtrinsicSuccess {
+	return p.System_ExtrinsicSuccess
+}
+
+func (p BifrostEventRecords) GetSystemExtrinsicFailed() []types.EventSystemExtrinsicFailed {
+	return p.System_ExtrinsicFailed
+}
