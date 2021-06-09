@@ -33,4 +33,33 @@ func Test_ParseKsmV13(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(result)
+	meta, err := c.RPC.State.GetMetadataLatest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	eventId := types.EventID([2]byte{5, 1})
+	mod, event, err := meta.FindEventNamesForEventID(eventId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(mod)
+	fmt.Println(event)
+}
+
+func Test_GetEventName(t *testing.T) {
+	c, err := gsrc.NewSubstrateAPI("wss://kusama-rpc.polkadot.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta, err := c.RPC.State.GetMetadataLatest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	eventId := types.EventID([2]byte{0x12, 0x06})
+	mod, event, err := meta.FindEventNamesForEventID(eventId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(mod)
+	fmt.Println(event)
 }

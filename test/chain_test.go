@@ -5,7 +5,7 @@ import (
 	"github.com/JFJun/bifrost-go/client"
 	"github.com/JFJun/bifrost-go/expand"
 	"github.com/JFJun/bifrost-go/expand/base"
-	"github.com/JFJun/bifrost-go/expand/polkadot"
+	"github.com/JFJun/bifrost-go/expand/bifrost"
 	"github.com/JFJun/go-substrate-rpc-client/v3/types"
 	"reflect"
 	"strings"
@@ -17,15 +17,16 @@ import (
 
 */
 func Test_Chain(t *testing.T) {
-	c, err := client.New("wss://crab-rpc.darwinia.network/")
+	c, err := client.New("wss://bifrost-rpc.liebi.com/ws")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	b := polkadot.PolkadotEventRecords{}
+	//b := polkadot.PolkadotEventRecords{}
+	b := bifrost.BifrostEventRecords{}
 	existMap := getEventTypesFieldName(b)
-
 	fmt.Println(c.ChainName)
+	fmt.Println(c.Meta.Version)
 	for _, mod := range c.Meta.AsMetadataV12.Modules {
 		if mod.HasEvents {
 			for _, event := range mod.Events {
@@ -47,6 +48,31 @@ func Test_Chain(t *testing.T) {
 
 				//fmt.Println(event.Args)
 				fmt.Println("------------------------------------------------")
+			}
+		}
+	}
+}
+
+func Test_Chain2(t *testing.T) {
+	c, err := client.New("wss://rpc.polkadot.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mod := range c.Meta.AsMetadataV12.Modules {
+		if mod.HasEvents {
+			for _, event := range mod.Events {
+				for _, arg := range event.Args {
+					a := string(arg)
+					if a[len(a)-1:] == ">" {
+						typeName := fmt.Sprintf("%s_%s", mod.Name, event.Name)
+						fmt.Printf("%s		[]Event%s%s\n", typeName, mod.Name, event.Name)
+						fmt.Println(arg)
+						fmt.Println("------------------------------------------------")
+					}
+				}
+
+				//fmt.Println(event.Args)
+				//fmt.Println("------------------------------------------------")
 			}
 		}
 	}
@@ -81,7 +107,7 @@ func getEventTypesFieldName(ier expand.IEventRecords) []string {
 		if bep.Field(i).Name == "EventRecords" {
 			continue
 		}
-		existMap = append(existMap, tep.Field(i).Name)
+		existMap = append(existMap, bep.Field(i).Name)
 	}
 	// third parse IEventRecords
 	ierp := reflect.TypeOf(ier)
@@ -105,43 +131,97 @@ func IsExist(typeName string, existTypes []string) bool {
 }
 
 func Test_GetAllType(t *testing.T) {
-	c, err := client.New("wss://crab-rpc.darwinia.network/")
+	kList, err := getAllTypes("wss://kusama-rpc.polkadot.io", 13)
 	if err != nil {
 		t.Fatal(err)
 	}
+	pList, err := getAllTypes("wss://rpc.polkadot.io", 12)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//fmt.Println(pList)
+	//fmt.Println(kList)
+	var sameList []string
+	for _, p := range pList {
+		haveSame := false
+		for _, k := range kList {
+			if p == k {
+				haveSame = true
+				break
+			}
+		}
+		if haveSame == true {
+			sameList = append(sameList, p)
+		}
+	}
+	for _, s := range sameList {
+		fmt.Println(s)
+	}
+}
+
+func getAllTypes(url string, version int) ([]string, error) {
+	c, err := client.New(url)
+	if err != nil {
+		return nil, err
+	}
 	var tmpLists []string
-	for _, mod := range c.Meta.AsMetadataV12.Modules {
+	if version == 13 {
+		for _, mod := range c.Meta.AsMetadataV13.Modules {
 
-		if mod.HasEvents {
-			for _, event := range mod.Events {
+			if mod.HasEvents {
+				for _, event := range mod.Events {
 
-				if len(event.Args) == 0 {
-					//fmt.Printf("type Event%s%s struct { \n	Phase    types.Phase\n	\n	Topics []types.Hash\n}\n", mod.Name, event.Name)
-				} else {
-					//as:=""
-					for _, arg := range event.Args {
-						norPrint := false
-						for _, as := range tmpLists {
-							if as == string(arg) {
-								norPrint = true
+					if len(event.Args) == 0 {
+						//fmt.Printf("type Event%s%s struct { \n	Phase    types.Phase\n	\n	Topics []types.Hash\n}\n", mod.Name, event.Name)
+					} else {
+						//as:=""
+						for _, arg := range event.Args {
+							norPrint := false
+							for _, as := range tmpLists {
+								if as == string(arg) {
+									norPrint = true
+								}
 							}
+							if norPrint {
+								continue
+							}
+							tmpLists = append(tmpLists, string(arg))
 						}
-						if norPrint {
-							continue
-						}
-						tmpLists = append(tmpLists, string(arg))
-						fmt.Println(arg)
-						//fmt.Println(ConvertType(string(arg)))
-						//fmt.Println("========================================")
 
 					}
-
 				}
-				//fmt.Println(event.Args)
+			}
+		}
+	} else {
+		for _, mod := range c.Meta.AsMetadataV12.Modules {
+
+			if mod.HasEvents {
+				for _, event := range mod.Events {
+
+					if len(event.Args) == 0 {
+						//fmt.Printf("type Event%s%s struct { \n	Phase    types.Phase\n	\n	Topics []types.Hash\n}\n", mod.Name, event.Name)
+					} else {
+						//as:=""
+						for _, arg := range event.Args {
+							norPrint := false
+							for _, as := range tmpLists {
+								if as == string(arg) {
+									norPrint = true
+								}
+							}
+							if norPrint {
+								continue
+							}
+							tmpLists = append(tmpLists, string(arg))
+						}
+
+					}
+				}
 			}
 		}
 	}
 
+	return tmpLists, nil
 }
 
 type ChainTypes struct {
