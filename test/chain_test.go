@@ -17,7 +17,7 @@ import (
 
 */
 func Test_Chain(t *testing.T) {
-	c, err := client.New("wss://bifrost-rpc.liebi.com/ws")
+	c, err := client.New("wss://rpc.polkadot.io")
 	if err != nil {
 		t.Fatal(err)
 	}

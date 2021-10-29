@@ -26,6 +26,10 @@ type iMetaVersion interface {
 func NewMetadataExpand(meta *types.Metadata) (*MetadataExpand, error) {
 	me := new(MetadataExpand)
 	me.meta = meta
+	if meta.Version >= 14 {
+		me.MV = newV14UpGrade(meta)
+		return me, nil
+	}
 	if meta.IsMetadataV11 {
 		me.MV = newV11(meta.AsMetadataV11.Modules)
 	} else if meta.IsMetadataV12 {
@@ -33,9 +37,36 @@ func NewMetadataExpand(meta *types.Metadata) (*MetadataExpand, error) {
 	} else if meta.IsMetadataV13 {
 		me.MV = newV13(meta.AsMetadataV13.Modules)
 	} else {
-		return nil, errors.New("metadata version is not v11 or v12")
+		return nil, errors.New("metadata version is not v11 or v12 or 13")
 	}
 	return me, nil
+}
+
+/*
+func: 没办法，只能适应之前写的啰
+author: flynn
+date: 2021/10/29
+*/
+type v14Upgrade struct {
+	meta *types.Metadata
+}
+
+func newV14UpGrade(meta *types.Metadata) *v14Upgrade {
+	v := new(v14Upgrade)
+	v.meta = meta
+	return v
+}
+
+func (v v14Upgrade) GetCallIndex(moduleName, fn string) (callIdx string, err error) {
+	return v.meta.GetCallIndex(moduleName, fn)
+}
+
+func (v v14Upgrade) FindNameByCallIndex(callIdx string) (moduleName, fn string, err error) {
+	return v.meta.FindNameByCallIndex(callIdx)
+}
+
+func (v v14Upgrade) GetConstants(modName, constantsName string) (constantsType string, constantsValue []byte, err error) {
+	return v.meta.GetConstants(modName, constantsName)
 }
 
 type v11 struct {

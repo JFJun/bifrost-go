@@ -18,7 +18,7 @@ func Test_GetBlockByNumber(t *testing.T) {
 	/*
 		Ksm: 7834050
 	*/
-	resp, err := c.GetBlockByNumber(5429211)
+	resp, err := c.GetBlockByNumber(7467638)
 	if err != nil {
 		t.Fatal(err)
 	}
